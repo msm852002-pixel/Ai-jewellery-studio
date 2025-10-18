@@ -1,10 +1,10 @@
-
-import React from 'react';
-import { ImageIcon, LoadingSpinnerIcon } from './icons';
+import React, { useState, useEffect } from 'react';
+import { ImageIcon, LoadingSpinnerIcon, DownloadIcon, DiamondIcon } from './icons';
 
 interface OutputDisplayProps {
   imageUrl: string | null;
   isLoading: boolean;
+  aspectRatio: string;
 }
 
 const Placeholder: React.FC = () => (
@@ -15,24 +15,76 @@ const Placeholder: React.FC = () => (
   </div>
 );
 
-const LoadingState: React.FC = () => (
-  <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-10">
-    <LoadingSpinnerIcon className="w-16 h-16 text-amber-500" />
-    <p className="mt-4 text-lg font-semibold text-stone-700">Generating 8K Realism...</p>
-    <p className="text-stone-500">This may take a moment.</p>
-  </div>
-);
+const creativeLoadingMessages = [
+  'Polishing the gemstones...',
+  'Calibrating camera for 8K...',
+  'Finding the perfect angle...',
+  'Adjusting ambient lighting...',
+  'Rendering cinematic bokeh...',
+  'Finalizing luxury aesthetic...',
+];
 
-export const OutputDisplay: React.FC<OutputDisplayProps> = ({ imageUrl, isLoading }) => {
+const CreativeLoadingState: React.FC = () => {
+  const [message, setMessage] = useState(creativeLoadingMessages[0]);
+
+  useEffect(() => {
+    let index = 0;
+    const interval = setInterval(() => {
+      index = (index + 1) % creativeLoadingMessages.length;
+      setMessage(creativeLoadingMessages[index]);
+    }, 2500);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div className="relative aspect-[9/16] lg:aspect-[16/9] w-full bg-white rounded-2xl shadow-xl border border-stone-200 overflow-hidden">
-        {isLoading && <LoadingState />}
+    <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 p-4">
+      <div className="relative">
+        <LoadingSpinnerIcon className="w-16 h-16 text-amber-500" />
+        <DiamondIcon className="w-8 h-8 text-amber-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+      </div>
+      <p className="mt-4 text-lg font-semibold text-stone-700 text-center transition-opacity duration-500">{message}</p>
+      <p className="text-stone-500 text-center">This may take a moment.</p>
+    </div>
+  );
+};
+
+
+export const OutputDisplay: React.FC<OutputDisplayProps> = ({ imageUrl, isLoading, aspectRatio }) => {
+  const cssAspectRatio = aspectRatio.replace(':', ' / ');
+
+  const handleDownload = () => {
+    if (!imageUrl) return;
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    const fileName = `ai_jewelry_photoshoot_${aspectRatio.replace(':', 'x')}.png`;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  return (
+    <div 
+      style={{ aspectRatio: cssAspectRatio }}
+      className="relative w-full bg-white rounded-2xl shadow-xl border border-stone-200 overflow-hidden transition-all duration-300">
+        {isLoading && <CreativeLoadingState />}
         {imageUrl ? (
-            <img 
-                src={imageUrl} 
-                alt="Generated Photoshoot" 
-                className="w-full h-full object-cover transition-opacity duration-500"
-            />
+            <>
+                <img 
+                    src={imageUrl} 
+                    alt="Generated Photoshoot" 
+                    className="w-full h-full object-cover transition-opacity duration-500"
+                />
+                <button
+                    onClick={handleDownload}
+                    title="Download Image"
+                    aria-label="Download generated image"
+                    className="absolute top-4 right-4 p-2.5 bg-black/40 rounded-full text-white hover:bg-black/60 backdrop-blur-sm transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black/50"
+                >
+                    <DownloadIcon className="w-5 h-5" />
+                </button>
+            </>
         ) : (
             <Placeholder />
         )}

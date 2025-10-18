@@ -18,7 +18,8 @@ const fileToBase64 = (file: File): Promise<string> => {
 
 export const generatePhotoshootImage = async (
   jewelryFile: File,
-  modelFile: File
+  modelFile: File,
+  aspectRatio: string
 ): Promise<string> => {
     if (!process.env.API_KEY) {
         throw new Error("API_KEY environment variable not set");
@@ -28,7 +29,7 @@ export const generatePhotoshootImage = async (
     const jewelryBase64 = await fileToBase64(jewelryFile);
     const modelBase64 = await fileToBase64(modelFile);
 
-    const prompt = `Taking the jewelry from the first image and the model from the second, generate an ultra-realistic, cinematic 8K photoshoot image. The model should be wearing the jewelry naturally. The lighting should be soft and ambient, creating a luxury feel. The background should be beautifully blurred (bokeh), ensuring the jewelry is in sharp focus. The final image should have a premium, high-end aesthetic.`;
+    const prompt = `Taking the jewelry from the first image and the model from the second, generate an ultra-realistic, cinematic 8K photoshoot image with a ${aspectRatio} aspect ratio. The model should be wearing the jewelry naturally. The lighting should be soft and ambient, creating a luxury feel. The background should be beautifully blurred (bokeh), ensuring the jewelry is in sharp focus. The final image should have a premium, high-end aesthetic.`;
     
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',

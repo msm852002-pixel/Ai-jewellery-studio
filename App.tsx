@@ -5,6 +5,19 @@ import { ImageUploader } from './components/ImageUploader';
 import { OutputDisplay } from './components/OutputDisplay';
 import { generatePhotoshootImage } from './services/geminiService';
 import { MagicWandIcon } from './components/icons';
+import { AspectRatioSelector, AspectRatio } from './components/AspectRatioSelector';
+
+const aspectRatios: AspectRatio[] = [
+  { name: 'Square', ratio: '1:1', dimensions: '1080x1080px' },
+  { name: 'Portrait', ratio: '4:5', dimensions: '1080x1350px' },
+  { name: 'Landscape', ratio: '1.91:1', dimensions: '1080x566px' },
+  { name: 'Story / Reel', ratio: '9:16', dimensions: '1080x1920px' },
+  { name: '2K Landscape', ratio: '4:3', dimensions: '2048x1556px' },
+  { name: '2K Portrait', ratio: '3:4', dimensions: '1556x2048px' },
+  { name: '4K Landscape', ratio: '16:9', dimensions: '3840x2160px' },
+  { name: '4K Portrait', ratio: '9:16', dimensions: '2160x3840px' },
+];
+
 
 const App: React.FC = () => {
   const [jewelryFile, setJewelryFile] = useState<File | null>(null);
@@ -12,6 +25,7 @@ const App: React.FC = () => {
   const [outputImage, setOutputImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [aspectRatio, setAspectRatio] = useState<string>('1:1');
 
   const jewelryPreviewUrl = useMemo(() => {
     return jewelryFile ? URL.createObjectURL(jewelryFile) : null;
@@ -39,7 +53,7 @@ const App: React.FC = () => {
     setOutputImage(null);
 
     try {
-      const generatedImageBase64 = await generatePhotoshootImage(jewelryFile, modelFile);
+      const generatedImageBase64 = await generatePhotoshootImage(jewelryFile, modelFile, aspectRatio);
       setOutputImage(`data:image/png;base64,${generatedImageBase64}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unknown error occurred.');
@@ -73,6 +87,11 @@ const App: React.FC = () => {
                   placeholderText="A model portrait"
                 />
               </div>
+               <AspectRatioSelector
+                options={aspectRatios}
+                selectedRatio={aspectRatio}
+                onSelect={setAspectRatio}
+              />
               <button
                 onClick={handleGenerateClick}
                 disabled={isButtonDisabled}
@@ -89,6 +108,7 @@ const App: React.FC = () => {
               <OutputDisplay
                 imageUrl={outputImage}
                 isLoading={isLoading}
+                aspectRatio={aspectRatio}
               />
             </div>
           </div>
